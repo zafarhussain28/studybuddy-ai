@@ -4,6 +4,10 @@ Your AI-Powered Study Companion. An AI-powered web application that helps studen
 
 Built for the **Vibe Coding Masterclass Assessment**.
 
+
+
+Live Application: https://studybuddy-ai-zeta.vercel.app/
+
 ## Project Structure
 ```
 studybuddy-ai/
