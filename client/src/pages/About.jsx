@@ -23,7 +23,7 @@ export default function About() {
               <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500"></span> TailwindCSS v4</li>
               <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-purple-500"></span> Framer Motion</li>
               <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-yellow-500"></span> Node.js & Express</li>
-              <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> OpenAI SDK</li>
+              <li className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> Google Gemini API</li>
             </ul>
           </div>
         </div>

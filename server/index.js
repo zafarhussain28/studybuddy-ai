@@ -35,4 +35,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
-  console.log(`GROQ_API_KEY is ${process.env.GROQ_API_KEY ? 'SET' : 'NOT SET (features will fail)'}`);});
+  console.log(`GEMINI_API_KEY is ${process.env.GEMINI_API_KEY ? 'SET' : 'NOT SET (features will fail)'}`);
+});

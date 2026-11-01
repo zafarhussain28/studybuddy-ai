@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Copy, RefreshCw } from 'lucide-react';
+import { Send, Bot, User, Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
 import { API_BASE_URL } from '../api';
+import { createSSEParser } from '../api/sse';
 
 export default function Chat() {
   const [messages, setMessages] = useState([
@@ -11,6 +12,7 @@ export default function Chat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const requestInFlightRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -22,12 +24,25 @@ export default function Chat() {
 
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || requestInFlightRef.current) return;
 
+    requestInFlightRef.current = true;
     const newMessages = [...messages, { role: 'user', content: input }];
     setMessages(newMessages);
     setInput('');
     setIsLoading(true);
+    let assistantMessageIndex = null;
+
+    const updateAssistantMessage = (content) => {
+      if (assistantMessageIndex === null) {
+        setMessages((prev) => [...prev, { role: 'assistant', content }]);
+        return;
+      }
+
+      setMessages((prev) => prev.map((message, index) =>
+        index === assistantMessageIndex ? { ...message, content } : message
+      ));
+    };
 
     try {
       const payloadMessages = newMessages.map(m => ({ role: m.role, content: m.content }));
@@ -44,56 +59,62 @@ export default function Chat() {
         try {
           const errData = await response.json();
           errorMsg = errData.message || errorMsg;
-        } catch (e) { /* ignore parse error */ }
-        setIsLoading(false);
-        setMessages(prev => [...prev, { role: 'assistant', content: `**Error:** ${errorMsg}` }]);
+        } catch { /* ignore parse error */ }
+        updateAssistantMessage(`**Error:** ${errorMsg}`);
         return;
       }
 
       const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let done = false;
+      assistantMessageIndex = newMessages.length;
+      setMessages([...newMessages, { role: 'assistant', content: '' }]);
+
       let aiResponseText = '';
+      let streamComplete = false;
+      let streamError = '';
+      const parser = createSSEParser((eventData) => {
+        if (streamComplete || streamError) return;
+        if (eventData === '[DONE]') {
+          streamComplete = true;
+          return;
+        }
 
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
-      setIsLoading(false); // Stop loading animation since stream started
+        let data;
+        try {
+          data = JSON.parse(eventData);
+        } catch {
+          streamError = 'Received an invalid response from the AI server.';
+          return;
+        }
 
-      while (!done) {
+        if (data.error) {
+          streamError = data.error;
+          updateAssistantMessage(`**Error:** ${data.error}`);
+          return;
+        }
+
+        if (typeof data.content === 'string' && data.content) {
+          aiResponseText += data.content;
+          updateAssistantMessage(aiResponseText);
+        }
+      });
+
+      while (!streamComplete && !streamError) {
         const { value, done: readerDone } = await reader.read();
-        done = readerDone;
         if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-          
-          for (const line of lines) {
-            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-              try {
-                const data = JSON.parse(line.slice(6));
-                if (data.content) {
-                  aiResponseText += data.content;
-                  setMessages(prev => {
-                    const newArray = [...prev];
-                    newArray[newArray.length - 1] = { ...newArray[newArray.length - 1], content: aiResponseText };
-                    return newArray;
-                  });
-                }
-                if (data.error) {
-                  setMessages(prev => {
-                    const newArray = [...prev];
-                    newArray[newArray.length - 1] = { ...newArray[newArray.length - 1], content: `**Error:** ${data.error}` };
-                    return newArray;
-                  });
-                }
-              } catch (e) {
-                // ignore parse errors for partial chunks
-              }
-            }
-          }
+          parser.push(value);
+        }
+        if (readerDone) {
+          break;
         }
       }
-    } catch (err) {
+
+      parser.finish();
+      if (streamError) updateAssistantMessage(`**Error:** ${streamError}`);
+    } catch {
+      updateAssistantMessage('**Error:** Could not reach the AI server. Make sure the backend is running on port 5000.');
+    } finally {
+      requestInFlightRef.current = false;
       setIsLoading(false);
-      setMessages(prev => [...prev, { role: 'assistant', content: '**Error:** Could not reach the AI server. Make sure the backend is running on port 5000.' }]);
     }
   };
 
