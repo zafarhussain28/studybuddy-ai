@@ -66,16 +66,16 @@ All endpoints are hosted under `/api`.
 This project includes a `vercel.json` file optimized for Vercel deployment.
 1. Push this repository to GitHub.
 2. Log into [Vercel](https://vercel.com) and import the repository.
-3. In the environment variables section, add your `OPENAI_API_KEY`.
-4. Click Deploy. Vercel will automatically build the React app and serve the Express backend via Serverless Functions.
+3. In the environment variables section, add `GROQ_API_KEY` for the backend and set `VITE_API_URL=/api` for the frontend build.
+4. Click Deploy. Vercel will automatically build the React app and route `/api/*` to the Express backend.
 
 ### Docker / AWS Deployment
 A production-ready `Dockerfile` is included.
 1. Build the image: `docker build -t studybuddy-ai .`
-2. Run the image: `docker run -p 5000:5000 -e OPENAI_API_KEY=your_key studybuddy-ai`
+2. Run the image: `docker run -p 5000:5000 -e GROQ_API_KEY=your_key studybuddy-ai`
 3. You can push this image to AWS ECR and deploy via **AWS App Runner** or Elastic Beanstalk.
 
 ## Local Environment Setup
-1. Duplicate `server/.env.example` to `server/.env` and add your OpenAI API Key.
+1. Duplicate `server/.env.example` to `server/.env` and add your Groq API key.
 2. Backend: `cd server` -> `npm install` -> `node index.js`
 3. Frontend: `cd client` -> `npm install` -> `npm run dev`

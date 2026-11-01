@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Copy, RefreshCw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { motion } from 'framer-motion';
-import { chatWithAI } from '../api';
+import { API_BASE_URL } from '../api';
 
 export default function Chat() {
   const [messages, setMessages] = useState([
@@ -32,7 +32,7 @@ export default function Chat() {
     try {
       const payloadMessages = newMessages.map(m => ({ role: m.role, content: m.content }));
       
-      const response = await fetch((import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/chat', {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: payloadMessages })
