@@ -3,7 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const apiRoutes = require('./routes/api');
+const { assertFreeModel } = require('./config/ai');
 
+assertFreeModel();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -35,5 +37,5 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
-  console.log(`GEMINI_API_KEY is ${process.env.GEMINI_API_KEY ? 'SET' : 'NOT SET (features will fail)'}`);
+  console.log(`OPENROUTER_API_KEY is ${process.env.OPENROUTER_API_KEY ? 'SET' : 'NOT SET (features will fail)'}`);
 });

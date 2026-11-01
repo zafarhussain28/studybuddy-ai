@@ -1,5 +1,7 @@
 # Gemini Migration Verification Report
 
+> Historical record from the earlier Gemini migration. It does not describe the current OpenRouter configuration or validate the current provider.
+
 Date: 2026-11-01
 
 ## Scope and Outcome

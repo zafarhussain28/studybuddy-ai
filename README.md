@@ -20,7 +20,7 @@ studybuddy-ai/
 │   │   └── index.css       # Tailwind v4 & Glassmorphism styles
 │   └── package.json
 ├── server/                 # Node.js Express backend
-│   ├── controllers/        # API business logic and Gemini integration
+│   ├── controllers/        # API business logic and OpenRouter integration
 │   ├── routes/             # Express API routing
 │   ├── index.js            # Main server entry & middleware setup
 │   └── package.json
@@ -62,20 +62,23 @@ All endpoints are hosted under `/api`.
 
 ## Deployment Guide
 
+### Free AI Model
+All AI features use the server-configured `google/gemma-4-31b-it:free` model through OpenRouter. The backend rejects models without the `:free` suffix and disables provider fallbacks; it does not switch models or providers when the free model is unavailable.
+
 ### Vercel Deployment (Recommended)
 This project includes a `vercel.json` file optimized for Vercel deployment.
 1. Push this repository to GitHub.
 2. Log into [Vercel](https://vercel.com) and import the repository.
-3. In the environment variables section, add `GEMINI_API_KEY` for the backend and set `VITE_API_URL=/api` for the frontend build.
+3. In the environment variables section, add `OPENROUTER_API_KEY` for the backend and set `VITE_API_URL=/api` for the frontend build. Do not expose the OpenRouter key as a `VITE_` variable.
 4. Click Deploy. Vercel will automatically build the React app and route `/api/*` to the Express backend.
 
 ### Docker / AWS Deployment
 A production-ready `Dockerfile` is included.
 1. Build the image: `docker build -t studybuddy-ai .`
-2. Run the image: `docker run -p 5000:5000 -e GEMINI_API_KEY=your_key studybuddy-ai`
+2. Run the image: `docker run -p 5000:5000 -e OPENROUTER_API_KEY=your_key studybuddy-ai`
 3. You can push this image to AWS ECR and deploy via **AWS App Runner** or Elastic Beanstalk.
 
 ## Local Environment Setup
-1. Duplicate `server/.env.example` to `server/.env` and add your Gemini API key.
+1. Duplicate `server/.env.example` to `server/.env` and add your OpenRouter API key.
 2. Backend: `cd server` -> `npm install` -> `node index.js`
 3. Frontend: `cd client` -> `npm install` -> `npm run dev`
